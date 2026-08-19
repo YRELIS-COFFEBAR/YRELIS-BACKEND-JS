@@ -3,7 +3,6 @@ pipeline {
 
   environment {
     NODE_TOOL = 'node-22'
-    // En el backend, no necesitamos PROJECT_DIR si el package.json está en la raíz
   }
 
   stages {
@@ -11,7 +10,7 @@ pipeline {
       steps {
         checkout([
           $class: 'GitSCM',
-          branches: [[name: 'develop']],
+          branches: [[name: 'main']],
           userRemoteConfigs: [[
             url: 'https://github.com/YRELIS-COFFEBAR/YRELIS-BACKEND-JS.git',
             credentialsId: 'Ardamins'
@@ -49,31 +48,32 @@ pipeline {
 
     stage('Empaquetar artefacto') {
       steps {
-        // Empaquetar el código fuente y node_modules (opcional)
-        zip zipFile: 'backend-build.zip', 
-            archive: true, 
-            glob: '**/*',
-            excludes: 'node_modules/**/*' // Excluir node_modules para reducir tamaño
+        // Opción 1: Usar PowerShell para crear el ZIP (recomendado para Windows)
+        powershell '''
+          $exclude = @("node_modules", ".git", ".env", "logs")
+          $files = Get-ChildItem -Path . -Exclude $exclude -Recurse
+          Compress-Archive -Path $files -DestinationPath backend-build.zip -Force
+        '''
         
-        // O si quieres incluir solo lo necesario
-        // zip zipFile: 'backend-build.zip', 
-        //     archive: true, 
-        //     glob: '**/*',
-        //     excludes: 'node_modules/**/*, .git/**/*, .env'
+        // Opción 2: Usar bat con 7zip si está instalado
+        // bat '7z a -tzip backend-build.zip * -xr!node_modules -xr!.git -xr!.env'
+        
+        // Opción 3: Usar bat con tar (si está disponible en Windows)
+        // bat 'tar -czf backend-build.tar.gz --exclude=node_modules --exclude=.git --exclude=.env *'
         
         archiveArtifacts artifacts: 'backend-build.zip', fingerprint: true
       }
     }
 
-    stage('Desplegar (opcional)') {
+    stage('Desplegar') {
       when {
         branch 'main'
       }
       steps {
-        echo 'Configura aquí tu despliegue (SSH, Docker, PM2, etc.)'
+        echo '✅ Configura aquí tu despliegue'
         // Ejemplo con PM2 en Windows:
         // bat 'pm2 stop yrelis-backend || true'
-        // bat 'pm2 start server.js --name yrelis-backend'
+        // bat 'set NODE_ENV=production && pm2 start server.js --name yrelis-backend'
       }
     }
   }
