@@ -48,12 +48,9 @@ pipeline {
 
     stage('Empaquetar artefacto') {
       steps {
-        // Crear ZIP con PowerShell (versión compatible con Jenkins)
         bat '''
           powershell -Command "Compress-Archive -Path * -DestinationPath backend-build.zip -Force -Exclude node_modules, .git, .env, logs"
         '''
-        
-        // Guardar el artefacto
         archiveArtifacts artifacts: 'backend-build.zip', fingerprint: true
       }
     }
@@ -64,7 +61,7 @@ pipeline {
       }
       steps {
         echo ' Configura aquí tu despliegue'
-        // Ejemplo con PM2 en Windows:
+        // Ejemplo con PM2:
         // bat 'pm2 stop yrelis-backend || true'
         // bat 'pm2 start server.js --name yrelis-backend'
       }
@@ -74,7 +71,7 @@ pipeline {
   post {
     success {
       echo ' Build de YRELIS-BACKEND-JS completado correctamente.'
-    
+    }
     failure {
       echo ' El build de YRELIS-BACKEND-JS falló.'
     }
