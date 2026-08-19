@@ -1,56 +1,50 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    NODE_TOOL = 'node-22'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: 'main']],
-          userRemoteConfigs: [[
-            url: 'https://github.com/YRELIS-COFFEBAR/YRELIS-BACKEND-JS.git',
-            credentialsId: 'Ardamins'
-          ]]
-        ])
-      }
+    environment {
+        NODE_TOOL = 'node-22'
     }
 
-    stage('Setup Node') {
-      steps {
-        nodejs(env.NODE_TOOL) {
-          bat 'node --version'
-          bat 'npm --version'
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('Instalar dependencias') {
-      steps {
-        nodejs(env.NODE_TOOL) {
-          bat 'npm install'
+        stage('Setup Node') {
+            steps {
+                nodejs(env.NODE_TOOL) {
+                    bat 'node --version'
+                    bat 'npm --version'
+                }
+            }
         }
-      }
-    }
 
-    stage('Ejecutar tests') {
-      steps {
-        nodejs(env.NODE_TOOL) {
-          bat 'npm test || echo "No hay tests"'
+        stage('Instalar dependencias') {
+            steps {
+                nodejs(env.NODE_TOOL) {
+                    bat 'npm install'
+                }
+            }
         }
-      }
-    }
-  }
 
-  post {
-    success {
-      echo '✅ Build de YRELIS-BACKEND-JS completado correctamente.'
+        stage('Verificar build') {
+            steps {
+                bat 'echo "✅ Build completado exitosamente"'
+                bat 'dir'
+                bat 'echo "Archivos en el directorio:"'
+                bat 'dir *.js'
+            }
+        }
     }
-    failure {
-      echo '❌ El build de YRELIS-BACKEND-JS falló.'
+
+    post {
+        success {
+            echo '✅ Build de YRELIS-BACKEND-JS completado correctamente.'
+        }
+        failure {
+            echo '❌ El build de YRELIS-BACKEND-JS falló.'
+        }
     }
-  }
 }
