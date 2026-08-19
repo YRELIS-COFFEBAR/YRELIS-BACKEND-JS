@@ -49,11 +49,11 @@ pipeline {
     stage('Empaquetar artefacto') {
       steps {
         script {
-          // Crear ZIP usando PowerShell
+          // Crear ZIP con PowerShell
           bat 'powershell -Command "Compress-Archive -Path * -DestinationPath backend-build.zip -Force -Exclude node_modules, .git, .env, logs"'
           
-          // Verificar que el ZIP se creó
-          bat 'dir backend-build.zip'
+          // Verificar que el ZIP existe
+          bat 'if exist backend-build.zip (echo ZIP creado) else (echo  Error creando ZIP)'
           
           // Guardar el artefacto
           archiveArtifacts artifacts: 'backend-build.zip', fingerprint: true
@@ -67,10 +67,6 @@ pipeline {
       }
       steps {
         echo ' Configura aquí tu despliegue'
-        // Ejemplo con PM2:
-        // bat 'pm2 stop yrelis-backend || true'
-        // bat 'pm2 start server.js --name yrelis-backend'
-        // bat 'pm2 save'
       }
     }
   }
