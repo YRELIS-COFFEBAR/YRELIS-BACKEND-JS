@@ -22,10 +22,8 @@ pipeline {
     stage('Setup Node') {
       steps {
         nodejs(env.NODE_TOOL) {
-          bat '''
-            node --version
-            npm --version
-          '''
+          bat 'node --version'
+          bat 'npm --version'
         }
       }
     }
@@ -33,7 +31,7 @@ pipeline {
     stage('Instalar dependencias') {
       steps {
         nodejs(env.NODE_TOOL) {
-          bat 'npm ci || npm install'
+          bat 'npm install'
         }
       }
     }
@@ -41,23 +39,17 @@ pipeline {
     stage('Ejecutar tests') {
       steps {
         nodejs(env.NODE_TOOL) {
-          bat 'npm test || echo "No hay tests configurados"'
+          bat 'npm test || echo "No hay tests"'
         }
       }
     }
 
     stage('Empaquetar artefacto') {
       steps {
-        script {
-          // Crear ZIP con PowerShell
-          bat 'powershell -Command "Compress-Archive -Path * -DestinationPath backend-build.zip -Force -Exclude node_modules, .git, .env, logs"'
-          
-          // Verificar que el ZIP existe
-          bat 'if exist backend-build.zip (echo ZIP creado) else (echo  Error creando ZIP)'
-          
-          // Guardar el artefacto
-          archiveArtifacts artifacts: 'backend-build.zip', fingerprint: true
-        }
+        bat 'echo "Empaquetando..."'
+        bat 'powershell -Command "Compress-Archive -Path * -DestinationPath backend.zip -Force -Exclude node_modules, .git"'
+        bat 'dir backend.zip'
+        archiveArtifacts artifacts: 'backend.zip'
       }
     }
 
@@ -66,17 +58,20 @@ pipeline {
         branch 'main'
       }
       steps {
-        echo ' Configura aquí tu despliegue'
+        echo 'Desplegando...'
+        bat 'pm2 stop yrelis-backend || echo "PM2 no corriendo"'
+        bat 'pm2 start app.js --name yrelis-backend || pm2 start server.js --name yrelis-backend || pm2 start index.js --name yrelis-backend'
+        bat 'pm2 save || echo "PM2 save no disponible"'
       }
     }
   }
 
   post {
     success {
-      echo ' Build de YRELIS-BACKEND-JS completado correctamente.'
+      echo '✅ Build exitoso'
     }
     failure {
-      echo ' El build de YRELIS-BACKEND-JS falló.'
+      echo '❌ Build falló'
     }
   }
 }
