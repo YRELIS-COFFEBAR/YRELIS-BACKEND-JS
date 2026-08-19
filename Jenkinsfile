@@ -8,7 +8,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/YRELIS-COFFEBAR/YRELIS-BACKEND-JS.git',
+                        credentialsId: 'Ardamins'
+                    ]]
+                ])
             }
         }
 
@@ -29,12 +36,15 @@ pipeline {
             }
         }
 
-        stage('Verificar build') {
+        stage('Verificar') {
             steps {
                 bat 'echo "✅ Build completado exitosamente"'
+                bat 'echo "Estructura del proyecto:"'
                 bat 'dir'
-                bat 'echo "Archivos en el directorio:"'
-                bat 'dir *.js'
+                bat 'echo "Archivos en src:"'
+                bat 'dir src'
+                bat 'echo "Archivos .js en src:"'
+                bat 'dir src\\*.js'
             }
         }
     }
