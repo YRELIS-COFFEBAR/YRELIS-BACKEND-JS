@@ -46,10 +46,20 @@ pipeline {
 
     stage('Empaquetar artefacto') {
       steps {
-        bat 'echo "Empaquetando..."'
-        bat 'powershell -Command "Compress-Archive -Path * -DestinationPath backend.zip -Force -Exclude node_modules, .git"'
-        bat 'dir backend.zip'
-        archiveArtifacts artifacts: 'backend.zip'
+        script {
+          try {
+            bat 'echo "Creando ZIP..."'
+            bat 'powershell -Command "Compress-Archive -Path * -DestinationPath backend.zip -Force -Exclude node_modules, .git"'
+            bat 'echo "ZIP creado exitosamente"'
+            bat 'dir backend.zip'
+            archiveArtifacts artifacts: 'backend.zip'
+          } catch (Exception e) {
+            echo "Error al empaquetar: ${e.message}"
+            // Si falla, intentamos empaquetar sin ZIP
+            bat 'echo "Empaquetando sin ZIP..."'
+            archiveArtifacts artifacts: '**/*'
+          }
+        }
       }
     }
 
